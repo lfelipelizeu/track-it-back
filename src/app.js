@@ -19,4 +19,8 @@ app.delete('/habits/:id', habitController.deleteHabit);
 
 app.get('/today', habitController.getTodayHabits);
 
+app.post('/habits/:id/check', habitController.checkTodayHabit);
+
+app.post('/habits/:id/uncheck', habitController.uncheckTodayHabit);
+
 export default app;

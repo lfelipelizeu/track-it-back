@@ -2,6 +2,7 @@ import '../../src/setup.js';
 import supertest from 'supertest';
 import faker from 'faker';
 import bcrypt from 'bcrypt';
+import dayjs from 'dayjs';
 import app from '../../src/app.js';
 import connection from '../../src/database.js';
 import createHabit from '../factories/habitFactory.js';
@@ -182,6 +183,111 @@ describe('GET /today', () => {
 
     it('returns 200 for valid session', async () => {
         const result = await agent.get('/today').set('authorization', token);
+        expect(result.status).toEqual(200);
+    });
+});
+
+describe('POST /habits/:id/check', () => {
+    const user = createUser();
+    const token = faker.datatype.uuid();
+    let habit;
+
+    beforeAll(async () => {
+        const hashPassword = bcrypt.hashSync(user.password, 10);
+        const result = await connection.query('INSERT INTO users (name, email, image,password) VALUES ($1, $2, $3, $4) RETURNING *;', [user.name, user.email, user.image, hashPassword]);
+        user.id = result.rows[0].id;
+        await connection.query('INSERT INTO sessions (user_id, token) VALUES ($1, $2);', [user.id, token]);
+        const newHabit = createHabit();
+        newHabit.days = [dayjs().day()];
+        const result2 = await agent.post('/habits').send(newHabit).set('authorization', token);
+        // eslint-disable-next-line prefer-destructuring
+        habit = result2.body;
+    });
+
+    afterAll(async () => {
+        await connection.query('DELETE FROM days_habits;');
+        await connection.query('DELETE FROM habits;');
+        await connection.query('DELETE FROM sessions;');
+        await connection.query('DELETE FROM users;');
+    });
+
+    it('returns 400 for a string at the param', async () => {
+        const result = await agent.post(`/habits/${faker.lorem.word(5)}/check`).set('authorization', token);
+        expect(result.status).toEqual(400);
+    });
+
+    it('returns 401 for no token received', async () => {
+        const result = await agent.post(`/habits/${habit.id}/check`);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 401 for invalid session token', async () => {
+        const invalidToken = faker.datatype.uuid();
+
+        const result = await agent.post(`/habits/${habit.id}/check`).set('authorization', invalidToken);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 404 for invalid habit', async () => {
+        const result = await agent.post(`/habits/${faker.datatype.number()}/check`).set('authorization', token);
+        expect(result.status).toEqual(404);
+    });
+
+    it('returns 200 for a valid habit', async () => {
+        const result = await agent.post(`/habits/${habit.id}/check`).set('authorization', token);
+        expect(result.status).toEqual(200);
+    });
+});
+
+describe('POST /habits/:id/uncheck', () => {
+    const user = createUser();
+    const token = faker.datatype.uuid();
+    let habit;
+
+    beforeAll(async () => {
+        const hashPassword = bcrypt.hashSync(user.password, 10);
+        const result = await connection.query('INSERT INTO users (name, email, image,password) VALUES ($1, $2, $3, $4) RETURNING *;', [user.name, user.email, user.image, hashPassword]);
+        user.id = result.rows[0].id;
+        await connection.query('INSERT INTO sessions (user_id, token) VALUES ($1, $2);', [user.id, token]);
+        const newHabit = createHabit();
+        newHabit.days = [dayjs().day()];
+        const result2 = await agent.post('/habits').send(newHabit).set('authorization', token);
+        // eslint-disable-next-line prefer-destructuring
+        habit = result2.body;
+        await agent.post(`/habits/${habit.id}/check`).set('authorization', token);
+    });
+
+    afterAll(async () => {
+        await connection.query('DELETE FROM days_habits;');
+        await connection.query('DELETE FROM habits;');
+        await connection.query('DELETE FROM sessions;');
+        await connection.query('DELETE FROM users;');
+    });
+
+    it('returns 400 for a string at the param', async () => {
+        const result = await agent.post(`/habits/${faker.lorem.word(5)}/uncheck`).set('authorization', token);
+        expect(result.status).toEqual(400);
+    });
+
+    it('returns 401 for no token received', async () => {
+        const result = await agent.post(`/habits/${habit.id}/uncheck`);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 401 for invalid session token', async () => {
+        const invalidToken = faker.datatype.uuid();
+
+        const result = await agent.post(`/habits/${habit.id}/uncheck`).set('authorization', invalidToken);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 404 for invalid habit', async () => {
+        const result = await agent.post(`/habits/${faker.datatype.number()}/uncheck`).set('authorization', token);
+        expect(result.status).toEqual(404);
+    });
+
+    it('returns 200 for a valid habit', async () => {
+        const result = await agent.post(`/habits/${habit.id}/uncheck`).set('authorization', token);
         expect(result.status).toEqual(200);
     });
 });
