@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import * as habitRepository from '../repositories/habitRepository.js';
 
 function isHabitValid(habit) {
@@ -35,9 +36,26 @@ async function searchTodayHabits(userId) {
     return habits;
 }
 
+async function getHabitsHistory(userId) {
+    const list = await habitRepository.selectHabitsHistory(userId);
+    const dates = list.map((habit) => dayjs(habit.date).format('YYYY/MM/DD'));
+    const uniqueDates = [...new Set(dates)];
+
+    const habitsHistory = [];
+    uniqueDates.forEach((date) => {
+        habitsHistory.push({
+            date: new Date(date),
+            habits: list.filter((habit) => dayjs(date).isSame(habit.date)),
+        });
+    });
+
+    return habitsHistory;
+}
+
 export {
     isHabitValid,
     createNewHabit,
     searchHabitsList,
     searchTodayHabits,
+    getHabitsHistory,
 };
