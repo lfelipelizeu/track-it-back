@@ -1,3 +1,5 @@
+import * as habitRepository from '../repositories/habitRepository.js';
+
 function isHabitValid(habit) {
     const { name, days } = habit;
 
@@ -7,6 +9,19 @@ function isHabitValid(habit) {
     return true;
 }
 
+async function createNewHabit(habit, userId) {
+    const newHabitId = await habitRepository.insertHabit(habit, userId);
+
+    const newHabit = {
+        id: newHabitId,
+        name: habit.name,
+        days: habit.days,
+    };
+
+    return newHabit;
+}
+
 export {
     isHabitValid,
+    createNewHabit,
 };

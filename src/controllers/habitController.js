@@ -11,9 +11,9 @@ async function createHabit(req, res) {
 
         if (!habitService.isHabitValid(req.body)) return res.sendStatus(400);
 
-        await habitRepository.insertHabit(req.body, session.userId);
+        const newHabit = await habitService.createNewHabit(req.body, session.userId);
 
-        return res.sendStatus(201);
+        return res.status(201).send(newHabit);
     } catch (error) {
         console.error(error);
         return res.sendStatus(500);

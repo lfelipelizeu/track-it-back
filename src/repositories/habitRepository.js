@@ -9,7 +9,11 @@ async function searchSessionByToken(token) {
 async function insertHabit(habit, userId) {
     const { name, days } = habit;
     const jsonDays = JSON.stringify(days);
-    await connection.query('INSERT INTO habits (user_id, name, weekdays, current_sequence, highest_sequence) VALUES ($1, $2, $3, 0, 0);', [userId, name, jsonDays]);
+
+    const result = await connection.query('INSERT INTO habits (user_id, name, weekdays, current_sequence, highest_sequence) VALUES ($1, $2, $3, 0, 0) RETURNING *;', [userId, name, jsonDays]);
+    const habitId = result.rows[0].id;
+
+    return habitId;
 }
 
 export {
