@@ -41,8 +41,15 @@ async function createHabitsDaysWeek(habit) {
     await connection.query(query, parameters);
 }
 
+async function selectHabits(userId) {
+    const result = await connection.query('SELECT id, name, weekdays as days FROM habits WHERE user_id = $1;', [userId]);
+    const habits = result.rows;
+    return habits;
+}
+
 export {
     searchSessionByToken,
     insertHabit,
     createHabitsDaysWeek,
+    selectHabits,
 };

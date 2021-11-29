@@ -13,4 +13,6 @@ app.post('/signin', userController.signIn);
 
 app.post('/habits', habitController.createHabit);
 
+app.get('/habits', habitController.getHabits);
+
 export default app;

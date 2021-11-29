@@ -22,6 +22,24 @@ async function createHabit(req, res) {
     }
 }
 
+async function getHabits(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const session = await habitRepository.searchSessionByToken(token);
+        if (!session) return res.sendStatus(401);
+
+        const habits = await habitService.searchHabitsList(session.id);
+
+        return res.status(200).send(habits);
+    } catch (error) {
+        console.error(error);
+        return res.sendStatus(500);
+    }
+}
+
 export {
     createHabit,
+    getHabits,
 };

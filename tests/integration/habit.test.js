@@ -58,3 +58,39 @@ describe('POST /habits', () => {
         expect(result.status).toEqual(201);
     });
 });
+
+describe('GET /habits', () => {
+    const user = createUser();
+    const token = faker.datatype.uuid();
+
+    beforeAll(async () => {
+        const hashPassword = bcrypt.hashSync(user.password, 10);
+        const result = await connection.query('INSERT INTO users (name, email, image,password) VALUES ($1, $2, $3, $4) RETURNING *;', [user.name, user.email, user.image, hashPassword]);
+        user.id = result.rows[0].id;
+        await connection.query('INSERT INTO sessions (user_id, token) VALUES ($1, $2);', [user.id, token]);
+    });
+
+    afterAll(async () => {
+        await connection.query('DELETE FROM days_habits;');
+        await connection.query('DELETE FROM habits;');
+        await connection.query('DELETE FROM sessions;');
+        await connection.query('DELETE FROM users;');
+    });
+
+    it('returns 401 for no token received', async () => {
+        const result = await agent.get('/habits');
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 401 for invalid session token', async () => {
+        const invalidToken = faker.datatype.uuid();
+
+        const result = await agent.get('/habits').set('authorization', invalidToken);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 200 for valid session', async () => {
+        const result = await agent.get('/habits').set('authorization', token);
+        expect(result.status).toEqual(200);
+    });
+});
