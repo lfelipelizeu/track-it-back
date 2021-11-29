@@ -25,6 +25,12 @@ async function createHabitsDaysWeek(habit) {
     const parameters = [];
 
     days.forEach((day, index) => {
+        if (dayjs().day(day).isSame(dayjs()) || dayjs().day(day).isAfter(dayjs())) {
+            query += ` ($${parameters.length + 1}, $${parameters.length + 2}, false),`;
+            parameters.push(id);
+            parameters.push(dayjs().day(day).format('DD/MM/YYYY'));
+        }
+
         query += ` ($${parameters.length + 1}, $${parameters.length + 2}, false)`;
         parameters.push(id);
         parameters.push(nextWeek.day(day).format('DD/MM/YYYY'));
