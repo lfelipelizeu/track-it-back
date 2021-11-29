@@ -30,7 +30,7 @@ async function getHabits(req, res) {
         const session = await habitRepository.searchSessionByToken(token);
         if (!session) return res.sendStatus(401);
 
-        const habits = await habitService.searchHabitsList(session.id);
+        const habits = await habitService.searchHabitsList(session.userId);
 
         return res.status(200).send(habits);
     } catch (error) {
@@ -60,8 +60,26 @@ async function deleteHabit(req, res) {
     }
 }
 
+async function getTodayHabits(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const session = await habitRepository.searchSessionByToken(token);
+        if (!session) return res.sendStatus(401);
+
+        const todayHabits = await habitService.searchTodayHabits(session.userId);
+
+        return res.status(200).send(todayHabits);
+    } catch (error) {
+        console.error(error);
+        return res.sendStatus(500);
+    }
+}
+
 export {
     createHabit,
     getHabits,
     deleteHabit,
+    getTodayHabits,
 };
