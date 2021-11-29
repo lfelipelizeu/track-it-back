@@ -1,5 +1,6 @@
 import joi from 'joi';
 import bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
 import * as userRepository from '../repositories/userRepository.js';
 
 function signUpDataValidationError(object) {
@@ -21,7 +22,19 @@ async function createUser(body) {
     await userRepository.insertUser(body, hashPassword);
 }
 
+function isPasswordCorrect(sentPassword, userPassword) {
+    return bcrypt.compareSync(sentPassword, userPassword);
+}
+
+async function createSession(userId) {
+    const token = uuid();
+    await userRepository.insertSession(userId, token);
+    return token;
+}
+
 export {
     signUpDataValidationError,
     createUser,
+    isPasswordCorrect,
+    createSession,
 };
