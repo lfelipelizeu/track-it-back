@@ -30,8 +30,14 @@ async function searchHabitsList(userId) {
     return habits;
 }
 
+async function searchTodayHabits(userId) {
+    const habits = await habitRepository.selectTodayHabits(userId);
+    return habits;
+}
+
 export {
     isHabitValid,
     createNewHabit,
     searchHabitsList,
+    searchTodayHabits,
 };

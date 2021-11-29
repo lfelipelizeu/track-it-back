@@ -54,10 +54,17 @@ async function deleteHabitFromDatabase(habitId) {
     return deletedRows;
 }
 
+async function selectTodayHabits(userId) {
+    const result = await connection.query('SELECT habits.id, habits.name, habits.current_sequence, habits.highest_sequence, days_habits.done FROM days_habits JOIN habits ON habits.id = days_habits.habit_id WHERE habits.user_id = $1 AND days_habits.date = $2;', [userId, new Date()]);
+    const habits = result.rows;
+    return habits;
+}
+
 export {
     searchSessionByToken,
     insertHabit,
     createHabitsDaysWeek,
     selectHabits,
     deleteHabitFromDatabase,
+    selectTodayHabits,
 };

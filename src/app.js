@@ -17,4 +17,6 @@ app.get('/habits', habitController.getHabits);
 
 app.delete('/habits/:id', habitController.deleteHabit);
 
+app.get('/today', habitController.getTodayHabits);
+
 export default app;
