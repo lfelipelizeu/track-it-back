@@ -39,7 +39,29 @@ async function getHabits(req, res) {
     }
 }
 
+async function deleteHabit(req, res) {
+    const { id } = req.params;
+    if (Number.isNaN(Number(id))) return res.sendStatus(400);
+
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const session = await habitRepository.searchSessionByToken(token);
+        if (!session) return res.sendStatus(401);
+
+        const deleted = await habitRepository.deleteHabitFromDatabase(id);
+        if (deleted === 0) return res.sendStatus(404);
+
+        return res.sendStatus(200);
+    } catch (error) {
+        console.error(error);
+        return res.sendStatus(500);
+    }
+}
+
 export {
     createHabit,
     getHabits,
+    deleteHabit,
 };

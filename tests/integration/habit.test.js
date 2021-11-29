@@ -94,3 +94,55 @@ describe('GET /habits', () => {
         expect(result.status).toEqual(200);
     });
 });
+
+describe('DELETE /habits/:id', () => {
+    const user = createUser();
+    const token = faker.datatype.uuid();
+    let habit;
+
+    beforeAll(async () => {
+        const hashPassword = bcrypt.hashSync(user.password, 10);
+        const result = await connection.query('INSERT INTO users (name, email, image,password) VALUES ($1, $2, $3, $4) RETURNING *;', [user.name, user.email, user.image, hashPassword]);
+        user.id = result.rows[0].id;
+        await connection.query('INSERT INTO sessions (user_id, token) VALUES ($1, $2);', [user.id, token]);
+        const newHabit = createHabit();
+        const result2 = await connection.query('INSERT INTO habits (user_id, name, weekdays, current_sequence, highest_sequence) VALUES ($1, $2, $3, 0, 0) RETURNING *;', [user.id, newHabit.name, JSON.stringify(newHabit.days)]);
+        habit = result2.rows[0];
+    });
+
+    afterAll(async () => {
+        await connection.query('DELETE FROM days_habits;');
+        await connection.query('DELETE FROM habits;');
+        await connection.query('DELETE FROM sessions;');
+        await connection.query('DELETE FROM users;');
+    });
+
+    it('returns 400 for a string at the param', async () => {
+        const result = await agent.delete(`/habits/${faker.lorem.word(5)}`).set('authorization', token);
+        expect(result.status).toEqual(400);
+    });
+
+    it('returns 401 for no token received', async () => {
+        const result = await agent.delete(`/habits/${habit.id}`);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 401 for invalid session token', async () => {
+        const invalidToken = faker.datatype.uuid();
+
+        const result = await agent.delete(`/habits/${habit.id}`).set('authorization', invalidToken);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 404 for invalid habit id', async () => {
+        const invalidHabit = faker.datatype.number();
+
+        const result = await agent.delete(`/habits/${invalidHabit}`).set('authorization', token);
+        expect(result.status).toEqual(404);
+    });
+
+    it('returns 200 for valid habit', async () => {
+        const result = await agent.delete(`/habits/${habit.id}`).set('authorization', token);
+        expect(result.status).toEqual(200);
+    });
+});
