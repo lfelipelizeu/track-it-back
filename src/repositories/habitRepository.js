@@ -61,14 +61,34 @@ async function selectTodayHabits(userId) {
 }
 
 async function checkHabit(habitId) {
-    const result = await connection.query('UPDATE days_habits SET done = true WHERE habit_id = $1 AND date = $2;', [habitId, new Date()]);
-    const updatedRows = result.rowCount;
+    const result = await connection.query('SELECT current_sequence as "currentSequence", highest_sequence as "highestSequence" FROM habits WHERE id = $1;', [habitId]);
+    if (result.rowCount === 0) return 0;
+    const { currentSequence, highestSequence } = result.rows[0];
+
+    let query = `UPDATE habits SET current_sequence = ${currentSequence + 1}`;
+    if (currentSequence === highestSequence) {
+        query += `, highest_sequence = ${highestSequence + 1}`;
+    }
+    await connection.query(`${query};`);
+
+    const result2 = await connection.query('UPDATE days_habits SET done = true WHERE habit_id = $1 AND date = $2;', [habitId, new Date()]);
+    const updatedRows = result2.rowCount;
     return updatedRows;
 }
 
 async function uncheckHabit(habitId) {
-    const result = await connection.query('UPDATE days_habits SET done = false WHERE habit_id = $1 AND date = $2;', [habitId, new Date()]);
-    const updatedRows = result.rowCount;
+    const result = await connection.query('SELECT current_sequence as "currentSequence", highest_sequence as "highestSequence" FROM habits WHERE id = $1;', [habitId]);
+    if (result.rowCount === 0) return 0;
+    const { currentSequence, highestSequence } = result.rows[0];
+
+    let query = `UPDATE habits SET current_sequence = ${currentSequence - 1}`;
+    if (currentSequence === highestSequence) {
+        query += `, highest_sequence = ${highestSequence - 1}`;
+    }
+    await connection.query(`${query};`);
+
+    const result2 = await connection.query('UPDATE days_habits SET done = false WHERE habit_id = $1 AND date = $2;', [habitId, new Date()]);
+    const updatedRows = result2.rowCount;
     return updatedRows;
 }
 
