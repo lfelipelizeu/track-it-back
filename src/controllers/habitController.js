@@ -3,16 +3,11 @@ import * as habitRepository from '../repositories/habitRepository.js';
 import * as habitService from '../services/habitService.js';
 
 async function createHabit(req, res) {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
         if (!habitService.isHabitValid(req.body)) return res.sendStatus(400);
 
-        const newHabit = await habitService.createNewHabit(req.body, session.userId);
+        const { userId } = req.session;
+        const newHabit = await habitService.createNewHabit(req.body, userId);
 
         await habitRepository.createHabitsDaysWeek(newHabit);
 
@@ -24,14 +19,9 @@ async function createHabit(req, res) {
 }
 
 async function getHabits(req, res) {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
-        const habits = await habitService.searchHabitsList(session.userId);
+        const { userId } = req.session;
+        const habits = await habitService.searchHabitsList(userId);
 
         return res.status(200).send(habits);
     } catch (error) {
@@ -44,13 +34,7 @@ async function deleteHabit(req, res) {
     const { id } = req.params;
     if (Number.isNaN(Number(id))) return res.sendStatus(400);
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
         const deleted = await habitRepository.deleteHabitFromDatabase(id);
         if (deleted === 0) return res.sendStatus(404);
 
@@ -62,14 +46,9 @@ async function deleteHabit(req, res) {
 }
 
 async function getTodayHabits(req, res) {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
-        const todayHabits = await habitService.searchTodayHabits(session.userId);
+        const { userId } = req.session;
+        const todayHabits = await habitService.searchTodayHabits(userId);
 
         return res.status(200).send(todayHabits);
     } catch (error) {
@@ -82,13 +61,7 @@ async function checkTodayHabit(req, res) {
     const { id } = req.params;
     if (Number.isNaN(Number(id))) return res.sendStatus(400);
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
         const updated = await habitRepository.checkHabit(id);
         if (updated === 0) return res.sendStatus(404);
 
@@ -103,13 +76,7 @@ async function uncheckTodayHabit(req, res) {
     const { id } = req.params;
     if (Number.isNaN(Number(id))) return res.sendStatus(400);
 
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
         const updated = await habitRepository.uncheckHabit(id);
         if (updated === 0) return res.sendStatus(404);
 
@@ -121,14 +88,9 @@ async function uncheckTodayHabit(req, res) {
 }
 
 async function getHistory(req, res) {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await habitRepository.searchSessionByToken(token);
-        if (!session) return res.sendStatus(401);
-
-        const habitsHistory = await habitService.getHabitsHistory(session.userId);
+        const { userId } = req.session;
+        const habitsHistory = await habitService.getHabitsHistory(userId);
 
         return res.status(200).send(habitsHistory);
     } catch (error) {
