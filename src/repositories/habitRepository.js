@@ -47,9 +47,17 @@ async function selectHabits(userId) {
     return habits;
 }
 
+async function deleteHabitFromDatabase(habitId) {
+    await connection.query('DELETE FROM days_habits WHERE habit_id = $1;', [habitId]);
+    const result = await connection.query('DELETE FROM habits WHERE id = $1;', [habitId]);
+    const deletedRows = result.rowCount;
+    return deletedRows;
+}
+
 export {
     searchSessionByToken,
     insertHabit,
     createHabitsDaysWeek,
     selectHabits,
+    deleteHabitFromDatabase,
 };

@@ -15,4 +15,6 @@ app.post('/habits', habitController.createHabit);
 
 app.get('/habits', habitController.getHabits);
 
+app.delete('/habits/:id', habitController.deleteHabit);
+
 export default app;
