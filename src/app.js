@@ -8,4 +8,6 @@ app.use(express.json());
 
 app.post('/signup', userController.signUp);
 
+app.post('/signin', userController.signIn);
+
 export default app;
