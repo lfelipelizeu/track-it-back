@@ -21,6 +21,7 @@ describe('POST /habits', () => {
     });
 
     afterAll(async () => {
+        await connection.query('DELETE FROM days_habits;');
         await connection.query('DELETE FROM habits;');
         await connection.query('DELETE FROM sessions;');
         await connection.query('DELETE FROM users;');

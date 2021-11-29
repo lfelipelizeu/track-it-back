@@ -13,6 +13,8 @@ async function createHabit(req, res) {
 
         const newHabit = await habitService.createNewHabit(req.body, session.userId);
 
+        await habitRepository.createHabitsDaysWeek(newHabit);
+
         return res.status(201).send(newHabit);
     } catch (error) {
         console.error(error);
