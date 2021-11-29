@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import '../../src/setup.js';
 import supertest from 'supertest';
 import faker from 'faker';
@@ -288,6 +289,45 @@ describe('POST /habits/:id/uncheck', () => {
 
     it('returns 200 for a valid habit', async () => {
         const result = await agent.post(`/habits/${habit.id}/uncheck`).set('authorization', token);
+        expect(result.status).toEqual(200);
+    });
+});
+
+describe('GET /today', () => {
+    const user = createUser();
+    const token = faker.datatype.uuid();
+
+    beforeAll(async () => {
+        const hashPassword = bcrypt.hashSync(user.password, 10);
+        const result = await connection.query('INSERT INTO users (name, email, image,password) VALUES ($1, $2, $3, $4) RETURNING *;', [user.name, user.email, user.image, hashPassword]);
+        user.id = result.rows[0].id;
+        await connection.query('INSERT INTO sessions (user_id, token) VALUES ($1, $2);', [user.id, token]);
+        const newHabit = await connection.query('INSERT INTO habits (user_id, name, weekdays, current_sequence, highest_sequence) VALUES ($1, $2, $3, 0, 0) RETURNING *;', [user.id, faker.lorem.words(3), JSON.stringify([0])]);
+        const newHabit2 = await connection.query('INSERT INTO habits (user_id, name, weekdays, current_sequence, highest_sequence) VALUES ($1, $2, $3, 0, 0) RETURNING *;', [user.id, faker.lorem.words(3), JSON.stringify([0])]);
+        await connection.query('INSERT INTO days_habits (habit_id, date, done) VALUES ($1, $2, false), ($3, $4, false), ($5, $6, true);', [newHabit.rows[0].id, dayjs().subtract(1, 'week'), newHabit2.rows[0].id, dayjs().subtract(1, 'week'), newHabit.rows[0].id, dayjs().subtract(3, 'day')]);
+    });
+
+    afterAll(async () => {
+        await connection.query('DELETE FROM days_habits;');
+        await connection.query('DELETE FROM habits;');
+        await connection.query('DELETE FROM sessions;');
+        await connection.query('DELETE FROM users;');
+    });
+
+    it('returns 401 for no token received', async () => {
+        const result = await agent.get('/history/daily');
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 401 for invalid session token', async () => {
+        const invalidToken = faker.datatype.uuid();
+
+        const result = await agent.get('/history/daily').set('authorization', invalidToken);
+        expect(result.status).toEqual(401);
+    });
+
+    it('returns 200 for valid session token', async () => {
+        const result = await agent.get('/history/daily').set('authorization', token);
         expect(result.status).toEqual(200);
     });
 });
