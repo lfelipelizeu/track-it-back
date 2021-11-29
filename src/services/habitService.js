@@ -21,7 +21,17 @@ async function createNewHabit(habit, userId) {
     return newHabit;
 }
 
+async function searchHabitsList(userId) {
+    const habits = await habitRepository.selectHabits(userId);
+    habits.forEach((habit) => {
+        // eslint-disable-next-line no-param-reassign
+        habit.days = JSON.parse(habit.days);
+    });
+    return habits;
+}
+
 export {
     isHabitValid,
     createNewHabit,
+    searchHabitsList,
 };
