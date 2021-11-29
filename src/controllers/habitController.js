@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as habitRepository from '../repositories/habitRepository.js';
 import * as habitService from '../services/habitService.js';
 
@@ -119,6 +120,23 @@ async function uncheckTodayHabit(req, res) {
     }
 }
 
+async function getHistory(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const session = await habitRepository.searchSessionByToken(token);
+        if (!session) return res.sendStatus(401);
+
+        const habitsHistory = await habitService.getHabitsHistory(session.userId);
+
+        return res.status(200).send(habitsHistory);
+    } catch (error) {
+        console.error(error);
+        return res.sendStatus(500);
+    }
+}
+
 export {
     createHabit,
     getHabits,
@@ -126,4 +144,5 @@ export {
     getTodayHabits,
     checkTodayHabit,
     uncheckTodayHabit,
+    getHistory,
 };

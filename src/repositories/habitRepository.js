@@ -92,6 +92,13 @@ async function uncheckHabit(habitId) {
     return updatedRows;
 }
 
+async function selectHabitsHistory(userId) {
+    const result = await connection.query('SELECT days_habits.date, habits.id, habits.name, days_habits.done FROM days_habits JOIN habits ON habits.id = days_habits.habit_id WHERE habits.user_id = $1 AND date < $2;', [userId, new Date()]);
+    const history = result.rows;
+
+    return history;
+}
+
 export {
     searchSessionByToken,
     insertHabit,
@@ -101,4 +108,5 @@ export {
     selectTodayHabits,
     checkHabit,
     uncheckHabit,
+    selectHabitsHistory,
 };

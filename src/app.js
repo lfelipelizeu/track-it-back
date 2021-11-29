@@ -23,4 +23,6 @@ app.post('/habits/:id/check', habitController.checkTodayHabit);
 
 app.post('/habits/:id/uncheck', habitController.uncheckTodayHabit);
 
+app.get('/history/daily', habitController.getHistory);
+
 export default app;
