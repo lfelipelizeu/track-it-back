@@ -66,6 +66,12 @@ async function checkHabit(habitId) {
     return updatedRows;
 }
 
+async function uncheckHabit(habitId) {
+    const result = await connection.query('UPDATE days_habits SET done = false WHERE habit_id = $1 AND date = $2;', [habitId, new Date()]);
+    const updatedRows = result.rowCount;
+    return updatedRows;
+}
+
 export {
     searchSessionByToken,
     insertHabit,
@@ -74,4 +80,5 @@ export {
     deleteHabitFromDatabase,
     selectTodayHabits,
     checkHabit,
+    uncheckHabit,
 };
